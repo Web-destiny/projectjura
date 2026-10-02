@@ -128,19 +128,48 @@ h1 span {
   box-shadow: var(--shadow-raised);
   left: 90px;
   top: 0;
+  transition:
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 280ms ease;
 }
 .sheet-back {
   transform: rotate(13deg);
-  background: var(--surface-alt);
+  background: linear-gradient(150deg, var(--sage-soft), var(--surface-alt));
+  transform-origin: 35% 85%;
 }
 .sheet-middle {
   transform: rotate(-8deg);
   left: 66px;
   top: 5px;
+  transform-origin: 70% 85%;
+  background: linear-gradient(165deg, var(--surface-elevated), var(--clay-soft));
+}
+.sheet-back::before,
+.sheet-middle::before {
+  content: '';
+  position: absolute;
+  top: 34px;
+  left: 27px;
+  width: 44px;
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--deep-sage) 40%, transparent);
+  box-shadow:
+    0 29px 0 color-mix(in srgb, var(--deep-sage) 16%, transparent),
+    0 45px 0 color-mix(in srgb, var(--deep-sage) 16%, transparent),
+    0 61px 0 color-mix(in srgb, var(--deep-sage) 12%, transparent);
+}
+.sheet-middle::before {
+  background: color-mix(in srgb, var(--clay) 42%, transparent);
+  box-shadow:
+    0 29px 0 color-mix(in srgb, var(--clay) 15%, transparent),
+    0 45px 0 color-mix(in srgb, var(--clay) 15%, transparent),
+    0 61px 0 color-mix(in srgb, var(--clay) 12%, transparent);
 }
 .sheet-front {
   padding: var(--space-5);
   transform: rotate(3deg);
+  transform-origin: 50% 82%;
 }
 .sheet-top {
   display: flex;
@@ -194,6 +223,44 @@ h1 span {
   font-size: 12px;
   box-shadow: var(--shadow-raised);
   white-space: nowrap;
+  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (hover: hover) and (pointer: fine) {
+  .desk:hover .sheet-back {
+    transform: translate3d(38px, -13px, 0) rotate(19deg);
+    box-shadow: var(--shadow-raised);
+  }
+  .desk:hover .sheet-middle {
+    transform: translate3d(-40px, -10px, 0) rotate(-15deg);
+    box-shadow: var(--shadow-raised);
+  }
+  .desk:hover .sheet-front {
+    transform: translate3d(0, -8px, 0) rotate(1deg) scale(1.015);
+    box-shadow:
+      var(--shadow-raised),
+      0 16px 34px color-mix(in srgb, var(--espresso) 15%, transparent);
+  }
+  .desk:hover .done-note {
+    transform: translate3d(13px, 9px, 0) rotate(-3deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet,
+  .done-note {
+    transition: none;
+  }
+  .desk:hover .sheet-back {
+    transform: rotate(13deg);
+  }
+  .desk:hover .sheet-middle {
+    transform: rotate(-8deg);
+  }
+  .desk:hover .sheet-front {
+    transform: rotate(3deg);
+  }
+  .desk:hover .done-note {
+    transform: rotate(-5deg);
+  }
 }
 .desk-dot {
   position: absolute;

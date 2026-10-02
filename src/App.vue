@@ -3,6 +3,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { repository } from './infrastructure/persistence/db';
 import Alert from './shared/ui/Alert.vue';
 import DzhuraIcon from './shared/ui/DzhuraIcon.vue';
+import DzhuraMark from './shared/ui/DzhuraMark.vue';
 
 const themes = [
   { value: 'terracotta', label: 'Терракота', hint: 'Тёплая мастерская' },
@@ -89,7 +90,7 @@ onUnmounted(() => {
   <header class="header">
     <div class="header-inner">
       <RouterLink to="/" class="brand" aria-label="ДЖУРА — главная">
-        <span class="brand-mark"><DzhuraIcon name="document" :size="25" /></span>
+        <span class="brand-mark"><DzhuraMark /></span>
         <span class="brand-copy"><strong>ДЖУРА</strong><small>мастерская документов</small></span>
       </RouterLink>
       <nav class="header-actions" aria-label="Инструменты">
@@ -202,15 +203,24 @@ onUnmounted(() => {
   box-shadow:
     0 4px 8px #100c0b30,
     inset 0 1px 0 #ffffff66;
+  transform: rotate(-3deg);
+  transition: transform 180ms ease;
+}
+.brand:hover .brand-mark {
+  transform: rotate(0deg) translateY(-1px);
+}
+.brand-mark svg {
+  width: 36px;
+  height: 36px;
 }
 .brand-copy {
   display: grid;
   line-height: 1.12;
 }
 .brand-copy strong {
-  font-size: 23px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
+  font-size: 24px;
+  font-weight: 750;
+  letter-spacing: 0.2px;
 }
 .brand-copy small {
   color: #e7d9cd;
@@ -472,8 +482,8 @@ onUnmounted(() => {
     border-radius: 10px;
   }
   .brand-mark svg {
-    width: 20px;
-    height: 20px;
+    width: 29px;
+    height: 29px;
   }
   .brand-copy strong {
     font-size: 18px;

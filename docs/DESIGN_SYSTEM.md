@@ -2,12 +2,14 @@
 
 Центральные токены: `src/app/theme/tokens.css`. Четыре палитры — terracotta, sage, sand и ink — отличаются температурой и контрастом, сохраняя общий язык продукта. У каждой есть три уровня: `--bg` для полотна, `--surface` для карточек и `--surface-elevated` для активных панелей и контролов. Дополнительные `--espresso`, `--clay` и `--deep-sage` задают контрастные опорные цвета. Основной текст — 16 px, подписи — 14–15 px. Onest поставляется локально. Медиа-правило reduced-motion отключает переходы.
 
-Компоненты в `src/shared/ui`: Button (primary/secondary/ghost/danger + loading/disabled), DzhuraIcon, DzhuraSelect, IconButton, Input, Textarea, Select, Combobox (нативный datalist), Checkbox, Switch, FileDropzone, Stepper, Card, DataTable, Drawer, Modal, Toast, Alert, Progress, EmptyState, Tooltip, Skeleton.
+Компоненты в `src/shared/ui`: Button (primary/secondary/ghost/danger + loading/disabled), DzhuraIcon, DzhuraMark, DzhuraSelect, IconButton, Input, Textarea, Select, Combobox (нативный datalist), Checkbox, Switch, FileDropzone, Stepper, Card, DataTable, Drawer, Modal, Toast, Alert, Progress, EmptyState, Tooltip, Skeleton. DzhuraMark — фирменная геометрическая «Д» с бумажным сгибом; тот же знак используется в favicon.
 
 Для Input/Textarea/Select/Combobox обязательна текстовая label. IconButton требует label для доступного имени. Modal использует нативный dialog/showModal для focus trap, Escape и возврата фокуса. Цвет ошибок сопровождается текстом и aria-invalid. Не вкладывайте интерактивную кнопку в Tooltip с другим интерактивным элементом.
 
 Редактор больших наборов данных — отдельный специализированный `features/DataEditor.vue` с виртуализацией и вставкой диапазона. `shared/ui/DataTable.vue` — небольшие read-only таблицы и slot для ячеек.
 
 Рабочие состояния: основной шаг выделен цветом и тенью, будущие шаги остаются читаемыми; активное поле подсвечено и его настройки появляются в закреплённой боковой панели; таблица сохраняет видимый заголовок при прокрутке, выделяет ячейку при вводе и показывает текст ошибки под ней. Интерактивные элементы получают небольшое смещение на hover и pressed-state.
+
+Стопка документов в hero раскрывается только при наведении точным указателем. Листы движутся через `transform`, без бесконечной анимации; при `prefers-reduced-motion` композиция остаётся неподвижной.
 
 Рабочие выпадающие списки используют `DzhuraSelect`: собственная поверхность и список, выбор стрелками, Home/End, Enter, Escape, закрытие по клику снаружи. Чекбоксы, раскрывающиеся `details` и поля ввода оформлены центральными стилями. Для точного указателя есть две фирменные SVG-формы курсора; текстовые поля сохраняют текстовый курсор. Не все примитивы требуются в текущих основных сценариях; тяжёлая внешняя UI-библиотека отсутствует.
