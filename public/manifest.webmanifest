@@ -1,0 +1,10 @@
+{
+  "name": "ДЖУРА — документы без рутины",
+  "short_name": "ДЖУРА",
+  "lang": "ru",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f6f1e9",
+  "theme_color": "#995137",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

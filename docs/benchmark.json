@@ -1,0 +1,71 @@
+{
+  "runtime": "v24.21.0",
+  "platform": "win32",
+  "date": "2026-10-02T18:29:34.399Z",
+  "results": [
+    {
+      "count": 1,
+      "inputBytes": 2069,
+      "outputBytes": 2064,
+      "elapsedMs": 7,
+      "rssMiB": 91,
+      "errors": 0
+    },
+    {
+      "count": 10,
+      "inputBytes": 2069,
+      "outputBytes": 20643,
+      "elapsedMs": 32,
+      "rssMiB": 95,
+      "errors": 0
+    },
+    {
+      "count": 100,
+      "inputBytes": 2069,
+      "outputBytes": 206560,
+      "elapsedMs": 208,
+      "rssMiB": 123,
+      "errors": 0
+    },
+    {
+      "count": 500,
+      "inputBytes": 2069,
+      "outputBytes": 1033007,
+      "elapsedMs": 913,
+      "rssMiB": 145,
+      "errors": 0
+    },
+    {
+      "count": 1,
+      "inputBytes": 102326,
+      "outputBytes": 102321,
+      "elapsedMs": 3,
+      "rssMiB": 120,
+      "errors": 0
+    },
+    {
+      "count": 10,
+      "inputBytes": 102326,
+      "outputBytes": 1023213,
+      "elapsedMs": 72,
+      "rssMiB": 135,
+      "errors": 0
+    },
+    {
+      "count": 100,
+      "inputBytes": 102326,
+      "outputBytes": 10232260,
+      "elapsedMs": 842,
+      "rssMiB": 158,
+      "errors": 0
+    },
+    {
+      "count": 500,
+      "inputBytes": 102326,
+      "outputBytes": 51161507,
+      "elapsedMs": 3833,
+      "rssMiB": 330,
+      "errors": 0
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+name: Publish to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Set GitHub Pages path
+        shell: bash
+        run: |
+          repo="${GITHUB_REPOSITORY#*/}"
+          owner="${GITHUB_REPOSITORY%/*}"
+          if [[ "${repo,,}" == "${owner,,}.github.io" ]]; then
+            echo "GITHUB_PAGES_BASE=/" >> "$GITHUB_ENV"
+          else
+            echo "GITHUB_PAGES_BASE=/$repo/" >> "$GITHUB_ENV"
+          fi
+      - run: npm run build
+      - name: Support direct links to app pages
+        run: cp dist/index.html dist/404.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+      - uses: actions/deploy-pages@v4
+        id: deployment

@@ -1,0 +1,20 @@
+Options -Indexes
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
+</IfModule>
+<IfModule mod_headers.c>
+Header always set X-Content-Type-Options "nosniff"
+Header always set Referrer-Policy "no-referrer"
+Header always set X-Frame-Options "DENY"
+Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'none'; frame-src 'self' about:; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'"
+<FilesMatch "\.(js|css|woff2?)$">
+Header set Cache-Control "public, max-age=31536000, immutable"
+</FilesMatch>
+<Files "index.html">
+Header set Cache-Control "no-cache"
+</Files>
+</IfModule>

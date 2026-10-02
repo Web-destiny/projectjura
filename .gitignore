@@ -1,0 +1,10 @@
+node_modules/
+dist/
+test-results/
+playwright-report/
+.env*
+!.env.example
+debug.log
+~$*
+/examples/
+/scripts/create-sample-people.mjs
