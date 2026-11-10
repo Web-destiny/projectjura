@@ -37,12 +37,12 @@ test('single DOCX generation, actual preview and download without file requests'
   await page.getByLabel('ФИО, строка 1', { exact: true }).fill('Иванов & Иван');
   await page.getByLabel('Дата, строка 1', { exact: true }).fill('02.10.2026');
   await page.getByLabel('Сумма, строка 1', { exact: true }).fill('25000');
-  await page.getByRole('button', { name: 'Проверить документы' }).click();
+  await page.getByRole('button', { name: 'Проверить данные' }).click();
   await page.getByRole('button', { name: 'Показать документ' }).click();
   await expect(page.frameLocator('iframe').locator('body')).toContainText('Иванов & Иван');
   await page.screenshot({ path: 'test-results/document-preview.png', fullPage: true });
   await page.getByRole('button', { name: 'Создать 1 документ' }).click();
-  await expect(page.getByRole('heading', { name: 'Документы готовы' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Документ готов' })).toBeVisible();
   const wait = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Скачать DOCX' }).click();
   const downloaded = await wait;
@@ -56,7 +56,7 @@ test('XLSX import creates two DOCX in ZIP', async ({ page }) => {
   await toData(page);
   await page.locator('input[type=file]').setInputFiles('tests/fixtures/data.xlsx');
   await expect(page.getByLabel('ФИО, строка 2', { exact: true })).toHaveValue('Петров Пётр');
-  await page.getByRole('button', { name: 'Проверить документы' }).click();
+  await page.getByRole('button', { name: 'Проверить данные' }).click();
   await page.getByRole('button', { name: 'Создать 2 документа' }).click();
   const wait = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Скачать ZIP' }).click();
@@ -132,7 +132,7 @@ test('invalid DOCX, required fields, CSV and cancellation', async ({ page }) => 
   await page.getByLabel('Обязательное поле').check();
   await page.getByRole('button', { name: 'К данным' }).click();
   await expect(page.getByText('Обязательное поле')).toBeVisible();
-  await page.getByRole('button', { name: 'Проверить документы' }).click();
+  await page.getByRole('button', { name: 'Проверить данные' }).click();
   await expect(page.getByRole('button', { name: 'Создать 0 документов' })).toBeDisabled();
   await page.getByRole('button', { name: 'Исправить данные' }).click();
   const csv =
@@ -140,8 +140,8 @@ test('invalid DOCX, required fields, CSV and cancellation', async ({ page }) => 
   await page
     .locator('input[type=file]')
     .setInputFiles({ name: 'batch.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) });
-  await expect(page.getByText('500 строк · одна строка = один документ')).toBeVisible();
-  await page.getByRole('button', { name: 'Проверить документы' }).click();
+  await expect(page.getByText('500 строк · одна строка = одно заполнение шаблона')).toBeVisible();
+  await page.getByRole('button', { name: 'Проверить данные' }).click();
   await page.getByRole('button', { name: 'Создать 500 документов' }).click();
   await page.getByRole('button', { name: 'Отменить', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('Операция отменена');

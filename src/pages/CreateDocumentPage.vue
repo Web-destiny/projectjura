@@ -60,7 +60,7 @@ const titles = [
 <template>
   <div class="row between">
     <RouterLink to="/" class="back-link"><DzhuraIcon name="arrow-left" :size="17" />В мастерскую</RouterLink
-    ><span class="pill">Создание документов</span>
+    ><span class="pill">Создание из шаблона</span>
   </div>
   <div class="heading">
     <h1>{{ titles[step] }}</h1>
@@ -152,7 +152,7 @@ const titles = [
         <SpreadsheetImport :fields="template.fields" @rows="updateRows" /><Alert
           v-if="!template.fields.length"
         >
-          В документе нет полей. Будут созданы копии исходного DOCX. Вернитесь к полям, чтобы добавить
+          В документе нет полей, поэтому данные не подставятся. Вернитесь к настройке полей, чтобы отметить
           изменяемые места. </Alert
         ><DataEditor :fields="template.fields" :rows="rows" @update="updateRows" /> </template
       ><template v-if="step === 3 && template">
@@ -166,7 +166,7 @@ const titles = [
           >.
         </Alert>
         <div class="card stack output-choice" role="group" aria-label="Формат результата">
-          <h3>Как скачать документы</h3>
+          <h3>Формат результата</h3>
           <div class="output-options">
             <button
               type="button"
@@ -192,7 +192,7 @@ const titles = [
                   >✓ Выбрано</span
                 ></span
               >
-              <small>Каждый документ начинается с новой страницы</small>
+              <small>Каждая строка заполняет шаблон с новой страницы</small>
             </button>
           </div>
           <small v-if="outputFormat === 'combined'"
@@ -203,7 +203,7 @@ const titles = [
         <div class="review-stats">
           <div class="card">
             <span class="stat">{{ ready.length }}</span
-            ><span>Готово к созданию</span>
+            ><span>{{ outputFormat === 'combined' ? 'Строк для общего файла' : 'Готово к созданию' }}</span>
           </div>
           <div class="card">
             <span class="stat">{{ problems.length }}</span
@@ -257,7 +257,13 @@ const titles = [
             </div>
           </div>
           <DocumentPreview v-if="preview" :bytes="preview" />
-          <p v-else class="muted">Выберите любую строку, чтобы увидеть соответствующий будущий DOCX.</p>
+          <p v-else class="muted">
+            {{
+              outputFormat === 'combined'
+                ? 'Выберите строку, чтобы увидеть её заполнение в общем файле.'
+                : 'Выберите любую строку, чтобы увидеть соответствующий будущий DOCX.'
+            }}
+          </p>
         </div> </template
       ><template v-if="step === 4 && result">
         <JobResult :result="result" :excluded="rows.length - ready.length" />
@@ -271,10 +277,10 @@ const titles = [
       <div v-if="step < 4" class="actions">
         <Button v-if="step > 0" @click="go(step - 1)"><DzhuraIcon name="arrow-left" :size="17" />Назад</Button
         ><Button v-if="step < 3" variant="primary" :disabled="!template" @click="go(step + 1)">
-          {{ step === 0 ? 'К настройке полей' : step === 1 ? 'К данным' : 'Проверить документы' }}
+          {{ step === 0 ? 'К настройке полей' : step === 1 ? 'К данным' : 'Проверить данные' }}
           <DzhuraIcon name="arrow-right" :size="18" /> </Button
         ><Button v-else variant="primary" :disabled="!ready.length" @click="generate">
-          Создать {{ documents(ready.length) }}
+          {{ outputFormat === 'combined' ? 'Создать общий DOCX' : `Создать ${documents(ready.length)}` }}
         </Button>
       </div>
     </template>

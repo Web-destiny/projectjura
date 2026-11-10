@@ -4,6 +4,7 @@ import type { DataRow, Field } from '../domain/models';
 import { validateValue } from '../domain/fields';
 import Button from '../shared/ui/Button.vue';
 import DzhuraIcon from '../shared/ui/DzhuraIcon.vue';
+import { counted } from '../shared/ru';
 const props = defineProps<{ fields: Field[]; rows: DataRow[]; fileNames?: string[] }>();
 const emit = defineEmits<{ update: [DataRow[]] }>();
 const scroll = ref(0);
@@ -59,7 +60,9 @@ function append() {
 <template>
   <div class="stack">
     <div class="row between data-toolbar">
-      <span class="muted">{{ rows.length }} строк · одна строка = один документ</span
+      <span class="muted"
+        >{{ counted(rows.length, ['строка', 'строки', 'строк']) }} ·
+        {{ fileNames ? 'одна строка = один файл' : 'одна строка = одно заполнение шаблона' }}</span
       ><Button v-if="!fileNames" @click="append">+ Добавить строку</Button>
     </div>
     <div ref="viewport" class="table-scroll" @scroll="scroll = ($event.target as HTMLElement).scrollTop">

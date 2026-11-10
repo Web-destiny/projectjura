@@ -12,10 +12,10 @@ test('500-row batch: virtual scrolling, arbitrary preview row and actual archive
   await page
     .locator('input[type=file]')
     .setInputFiles({ name: '500.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) });
-  await expect(page.getByText('500 строк · одна строка = один документ')).toBeVisible();
+  await expect(page.getByText('500 строк · одна строка = одно заполнение шаблона')).toBeVisible();
   await page.locator('.table-scroll').evaluate((el) => (el.scrollTop = el.scrollHeight));
   await expect(page.getByLabel('ФИО, строка 500', { exact: true })).toHaveValue('Клиент 500');
-  await page.getByRole('button', { name: 'Проверить документы' }).click();
+  await page.getByRole('button', { name: 'Проверить данные' }).click();
   await page.getByRole('combobox', { name: 'Предпросмотр строки' }).click();
   await page.getByRole('option', { name: '237', exact: true }).click();
   await page.getByRole('button', { name: 'Показать документ' }).click();

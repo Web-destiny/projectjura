@@ -11,10 +11,23 @@ const all = ref(false);
 <template>
   <div class="card stack">
     <span class="result-icon" aria-hidden="true">✓</span>
-    <h2>{{ result.files.length ? 'Документы готовы' : 'Обработка завершена' }}</h2>
-    <p class="muted">
-      Создано: {{ result.documentCount ?? result.files.length }} · исключено: {{ excluded || 0 }} · ошибок:
-      {{ result.errors.length }}
+    <h2>
+      {{
+        !result.files.length
+          ? 'Обработка завершена'
+          : result.documentCount !== undefined
+            ? 'Общий документ готов'
+            : result.files.length === 1
+              ? 'Документ готов'
+              : 'Документы готовы'
+      }}
+    </h2>
+    <p v-if="result.documentCount !== undefined" class="muted">
+      Обработано строк: {{ result.documentCount }} · файлов: {{ result.files.length }} · исключено:
+      {{ excluded || 0 }} · ошибок: {{ result.errors.length }}
+    </p>
+    <p v-else class="muted">
+      Создано: {{ result.files.length }} · исключено: {{ excluded || 0 }} · ошибок: {{ result.errors.length }}
     </p>
     <Button
       v-if="result.files.length"
@@ -34,7 +47,12 @@ const all = ref(false);
     <Button v-if="result.files.length > 5" variant="ghost" @click="all = !all">
       {{ all ? 'Свернуть' : 'Показать все' }} </Button
     ><Alert v-if="result.errors.length">
-      Некоторые документы не созданы. Скачайте отчёт, исправьте исходные данные и повторите обработку. </Alert
+      {{
+        result.documentCount !== undefined
+          ? 'Некоторые строки не обработаны.'
+          : 'Некоторые документы не созданы.'
+      }}
+      Скачайте отчёт, исправьте исходные данные и повторите обработку. </Alert
     ><Button
       v-if="result.errors.length"
       @click="download(csvReport(result.errors), 'Отчёт.csv', 'text/csv;charset=utf-8')"
