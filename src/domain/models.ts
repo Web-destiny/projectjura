@@ -46,6 +46,8 @@ export interface Draft {
   rows: DataRow[];
   step: number;
   updatedAt: number;
+  outputFormat?: 'separate' | 'combined';
+  autoGender?: boolean;
 }
 export interface EditDraft {
   files: OutputFile[];
@@ -72,6 +74,7 @@ export interface JobResult {
   files: OutputFile[];
   errors: { name: string; message: string }[];
   archive?: Uint8Array;
+  documentCount?: number;
 }
 export interface DocumentEngine {
   supports(name: string): boolean;

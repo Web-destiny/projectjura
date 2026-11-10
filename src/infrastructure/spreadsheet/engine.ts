@@ -47,7 +47,17 @@ export function autoMap(headers: string[], fields: Field[]): Record<string, numb
   const map: Record<string, number> = {};
   const used = new Set<number>();
   const aliases: Record<string, string[]> = {
-    фио: ['фиоклиента', 'fullname', 'name'],
+    фио: [
+      'фиоклиента',
+      'фиосотрудника',
+      'фиоработника',
+      'фамилияимяотчество',
+      'сотрудник',
+      'работник',
+      'fullname',
+      'name',
+    ],
+    должность: ['должностьсотрудника', 'должностьработника'],
     дата: ['date'],
     сумма: ['amount', 'sum'],
   };
@@ -65,7 +75,15 @@ export function autoMap(headers: string[], fields: Field[]): Record<string, numb
   return map;
 }
 export function mapRows(sheet: Sheet, map: Record<string, number>, fields: Field[]): DataRow[] {
-  return sheet.rows.map((row) => Object.fromEntries(fields.map((f) => [f.id, row[map[f.id]] ?? ''])));
+  return sheet.rows.map((row) =>
+    Object.fromEntries(
+      fields.map((f) => {
+        const value = row[map[f.id]] ?? '';
+        const date = f.type === 'date' ? value.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/u) : null;
+        return [f.id, date ? `${date[3]}-${date[2].padStart(2, '0')}-${date[1].padStart(2, '0')}` : value];
+      }),
+    ),
+  );
 }
 export function csvReport(rows: { name: string; message: string }[]) {
   return (

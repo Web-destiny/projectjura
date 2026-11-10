@@ -179,4 +179,54 @@ describe('archives and portable templates', () => {
     expect(job.errors).toHaveLength(1);
     expect(Object.keys((await JSZip.loadAsync(job.archive!)).files)).toEqual(['Один.docx', 'Один_2.docx']);
   });
+  it('creates one DOCX with a page start for every successful row', async () => {
+    const source = await makeDocx();
+    const fields = (await engine.parse(source)).fields;
+    fields[0].required = true;
+    const result = await execute(
+      'generate',
+      {
+        source,
+        fields,
+        filename: '',
+        outputFormat: 'combined',
+        rowNumbers: [1, 4, 5],
+        rows: [{ [fields[0].id]: 'Тестов' }, {}, { [fields[0].id]: 'Тестова' }],
+      },
+      () => {},
+    );
+    expect(result.documentCount).toBe(2);
+    expect(result.files).toHaveLength(1);
+    expect(result.archive).toBeUndefined();
+    expect(result.errors.map((error) => error.name)).toEqual(['Строка 4']);
+    const zip = await JSZip.loadAsync(result.files[0].bytes);
+    const body = await zip.file('word/document.xml')!.async('string');
+    expect(body).toContain('Тестов');
+    expect(body).toContain('Тестова');
+    expect(body.match(/pageBreakBefore/gu) || []).toHaveLength(1);
+    expect(body.match(/<w:sectPr/gu) || []).toHaveLength(1);
+    expect(body.indexOf('Тестов')).toBeLessThan(body.indexOf('Тестова'));
+  });
+  it('starts a new page when the template begins with a table', async () => {
+    const source = await makeDocx(
+      '<w:tbl><w:tr><w:tc><w:p><w:r><w:t>{{ФИО}}</w:t></w:r></w:p></w:tc></w:tr></w:tbl>',
+    );
+    const fields = (await engine.parse(source)).fields;
+    const result = await engine.combine(
+      source,
+      fields,
+      [{ [fields[0].id]: 'Один' }, { [fields[0].id]: 'Два' }],
+      () => {},
+    );
+    const body = await (await JSZip.loadAsync(result.bytes)).file('word/document.xml')!.async('string');
+    expect(result.count).toBe(2);
+    expect(body.match(/pageBreakBefore/gu) || []).toHaveLength(1);
+  });
+  it('rejects variable headers and unsupported drawing structures in combined output', async () => {
+    const header = await makeDocx(undefined, '<w:p><w:r><w:t>{{ФИО}}</w:t></w:r></w:p>');
+    const fields = (await engine.parse(header)).fields;
+    await expect(engine.combine(header, fields, [{}], () => {})).rejects.toThrow('колонтитулах');
+    const drawing = await makeDocx('<w:p><w:r><w:drawing/></w:r></w:p>');
+    await expect(engine.combine(drawing, [], [{}], () => {})).rejects.toThrow('изображения');
+  });
 });

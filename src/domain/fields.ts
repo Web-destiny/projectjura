@@ -10,7 +10,10 @@ export function detectFields(paragraphs: Paragraph[]): Field[] {
         f = {
           id: `field-${fields.size + 1}`,
           name,
-          type: 'text',
+          type:
+            name.toLocaleLowerCase('ru-RU').replace(/[^\p{L}\p{N}]/gu, '') === 'датарождения'
+              ? 'date'
+              : 'text',
           required: false,
           format: '',
           preview: '',

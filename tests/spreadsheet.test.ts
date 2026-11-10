@@ -33,6 +33,24 @@ describe('spreadsheet import', () => {
     const sheets = await readSpreadsheet(new Uint8Array(await book.xlsx.writeBuffer()), 'data.xlsx');
     expect(sheets[0].rows[0]).toEqual(['Иван', '2026-10-02', '00123']);
   });
+  it('normalizes day-first text only for date fields', () => {
+    const dateFields = [{ ...fields[1], name: 'Дата рождения', type: 'date' as const }, fields[2]];
+    const sheet = { name: '1С', headers: ['Дата рождения', 'ИНН'], rows: [['2.11.1990', '00123']] };
+    expect(mapRows(sheet, autoMap(sheet.headers, dateFields), dateFields)[0]).toEqual({
+      '1': '1990-11-02',
+      '2': '00123',
+    });
+  });
+  it('maps common 1C employee headings without guessing ambiguous columns', () => {
+    const employeeFields = [
+      { ...fields[0], id: 'name' },
+      { ...fields[0], id: 'job', name: 'Должность' },
+    ];
+    expect(autoMap(['Сотрудник', 'Должность сотрудника'], employeeFields)).toEqual({ name: 0, job: 1 });
+    expect(autoMap(['Сотрудник', 'ФИО сотрудника', 'Должность сотрудника'], employeeFields)).toEqual({
+      job: 2,
+    });
+  });
   it('leaves duplicate headers unresolved and handles invalid input', async () => {
     expect(autoMap(['ФИО', 'ФИО'], fields)).toEqual({});
     await expect(readSpreadsheet(new Uint8Array([1, 2]), 'data.xlsx')).rejects.toThrow();

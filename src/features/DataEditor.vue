@@ -88,7 +88,7 @@ function append() {
                 :data-cell="`${start + offset}-${col}`"
                 :value="row[f.id] || ''"
                 :aria-invalid="!!validateValue(f, row[f.id])"
-                :title="validateValue(f, row[f.id])"
+                :title="validateValue(f, row[f.id]) || row[f.id] || ''"
                 :class="{ invalid: validateValue(f, row[f.id]) }"
                 @input="change(start + offset, f.id, ($event.target as HTMLInputElement).value)"
                 @paste="paste($event, start + offset, col)"
@@ -141,7 +141,7 @@ function append() {
     </div>
     <small
       >Вставьте диапазон из Excel через Ctrl+V. Tab — следующая ячейка, ↑ ↓ — переход между строками. Даты в
-      CSV: ГГГГ-ММ-ДД.</small
+      CSV: ГГГГ-ММ-ДД или ДД.ММ.ГГГГ.</small
     >
   </div>
 </template>

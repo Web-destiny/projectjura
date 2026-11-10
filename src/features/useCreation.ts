@@ -8,6 +8,12 @@ import { readFile, errorMessage } from '../shared/files';
 import { useSession } from '../app/session';
 import { snapshot } from '../shared/snapshot';
 import { processingLimits } from '../domain/limits';
+import {
+  applyGenderSuggestions,
+  genderFields,
+  genderSuggestionInfo,
+  removeGenderSuggestions,
+} from '../domain/gender';
 export function useCreation() {
   const template = ref<Template>();
   const analysis = ref<Analysis>();
@@ -23,12 +29,44 @@ export function useCreation() {
   const preview = ref<Uint8Array>();
   const previewRow = ref(0);
   const excluded = ref<number[]>([]);
+  const outputFormat = ref<'separate' | 'combined'>('separate');
+  const autoGender = ref(true);
   const provider = new LocalProcessingProvider();
   const session = useSession();
   let timer: ReturnType<typeof setTimeout> | undefined;
   let disposed = false;
+  const genderPair = computed(() => genderFields(template.value?.fields || []));
+  const genderReview = computed(() => {
+    const pair = genderPair.value;
+    if (!pair || !autoGender.value)
+      return { surname: [] as number[], unresolved: [] as number[], inferred: 0 };
+    const surname: number[] = [],
+      unresolved: number[] = [];
+    let inferred = 0;
+    rows.value.forEach((row, index) => {
+      const source = genderSuggestionInfo(row);
+      if (source) inferred++;
+      if (source === 'surname') surname.push(index + 1);
+      if (row[pair.name.id]?.trim() && !row[pair.gender.id]?.trim()) unresolved.push(index + 1);
+    });
+    return { surname, unresolved, inferred };
+  });
   const valid = computed(() =>
-    rows.value.map((row, index) => ({ row, index, errors: rowErrors(template.value?.fields || [], row) })),
+    rows.value.map((row, index) => {
+      const errors = rowErrors(template.value?.fields || [], row);
+      if (
+        autoGender.value &&
+        genderPair.value &&
+        row[genderPair.value.name.id]?.trim() &&
+        !row[genderPair.value.gender.id]?.trim() &&
+        !errors.some((e) => e.field === genderPair.value!.gender.name)
+      )
+        errors.push({
+          field: genderPair.value.gender.name,
+          message: 'Не удалось определить автоматически. Укажите вручную.',
+        });
+      return { row, index, errors };
+    }),
   );
   const ready = computed(() =>
     valid.value.filter((v) => !v.errors.length && !excluded.value.includes(v.index)),
@@ -62,6 +100,17 @@ export function useCreation() {
     result.value = undefined;
     preview.value = undefined;
     excluded.value = [];
+    outputFormat.value = 'separate';
+    autoGender.value = true;
+  }
+  function updateRows(value: DataRow[]) {
+    rows.value = autoGender.value ? applyGenderSuggestions(value, template.value?.fields || []) : value;
+  }
+  function setAutoGender(value: boolean) {
+    autoGender.value = value;
+    rows.value = value
+      ? applyGenderSuggestions(rows.value, template.value?.fields || [])
+      : removeGenderSuggestions(rows.value, template.value?.fields || []);
   }
   async function load(files: File[]) {
     const file = files[0];
@@ -115,6 +164,8 @@ export function useCreation() {
         rows: snapshot(rows.value),
         step: Math.min(step.value, 3),
         updatedAt: Date.now(),
+        outputFormat: outputFormat.value,
+        autoGender: autoGender.value,
       });
     } catch {
       notice.value = 'Не удалось сохранить черновик: проверьте свободное место и разрешения браузера.';
@@ -125,7 +176,9 @@ export function useCreation() {
     const d = draft.value;
     await act(async () => {
       await open(d.template, d.step);
-      rows.value = d.rows;
+      outputFormat.value = d.outputFormat || 'separate';
+      autoGender.value = d.autoGender ?? true;
+      rows.value = autoGender.value ? applyGenderSuggestions(d.rows, d.template.fields) : d.rows;
       draft.value = undefined;
     });
   }
@@ -156,6 +209,7 @@ export function useCreation() {
           rows: ready.value.map((v) => toRaw(v.row)),
           filename: template.value!.filename,
           rowNumbers: ready.value.map((v) => v.index + 1),
+          outputFormat: outputFormat.value,
         },
         (p) => (progress.value = p),
       );
@@ -164,7 +218,7 @@ export function useCreation() {
     });
   }
   watch(
-    [template, rows, step],
+    [template, rows, step, outputFormat, autoGender],
     () => {
       preview.value = undefined;
       if (timer) clearTimeout(timer);
@@ -222,6 +276,12 @@ export function useCreation() {
     preview,
     previewRow,
     excluded,
+    outputFormat,
+    autoGender,
+    genderPair,
+    genderReview,
+    updateRows,
+    setAutoGender,
     valid,
     ready,
     problems,

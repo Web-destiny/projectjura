@@ -5,7 +5,14 @@ export interface TaskMap {
   analyze: { input: Uint8Array; output: Analysis };
   preview: { input: { source: Uint8Array; fields: Field[]; row: DataRow }; output: Uint8Array };
   generate: {
-    input: { source: Uint8Array; fields: Field[]; rows: DataRow[]; filename: string; rowNumbers?: number[] };
+    input: {
+      source: Uint8Array;
+      fields: Field[];
+      rows: DataRow[];
+      filename: string;
+      rowNumbers?: number[];
+      outputFormat?: 'separate' | 'combined';
+    };
     output: JobResult;
   };
   spreadsheet: { input: { bytes: Uint8Array; name: string }; output: Sheet[] };

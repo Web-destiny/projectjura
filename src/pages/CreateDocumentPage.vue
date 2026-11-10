@@ -13,6 +13,7 @@ import DocumentPreview from '../features/DocumentPreview.vue';
 import JobResult from '../features/JobResult.vue';
 import DzhuraIcon from '../shared/ui/DzhuraIcon.vue';
 import DzhuraSelect from '../shared/ui/DzhuraSelect.vue';
+import Checkbox from '../shared/ui/Checkbox.vue';
 const {
   softDocuments,
   template,
@@ -29,6 +30,12 @@ const {
   preview,
   previewRow,
   excluded,
+  outputFormat,
+  autoGender,
+  genderPair,
+  genderReview,
+  updateRows,
+  setAutoGender,
   ready,
   problems,
   fileExamples,
@@ -116,13 +123,83 @@ const titles = [
           </div>
         </details> </template
       ><template v-if="step === 2 && template">
-        <SpreadsheetImport :fields="template.fields" @rows="rows = $event" /><Alert
+        <div v-if="genderPair" class="card stack">
+          <Checkbox
+            :model-value="autoGender"
+            label="Определять пол по ФИО"
+            @update:model-value="setAutoGender"
+          />
+          <small
+            >Порядок: фамилия, имя, отчество. Пустой пол заполняется по отчеству, затем по фамилии. Значение
+            из Excel не меняется; результат можно исправить в таблице.</small
+          >
+          <small v-if="autoGender && genderReview.inferred"
+            >Подставлено: {{ genderReview.inferred }}. Проверьте значения перед созданием.</small
+          >
+          <Alert v-if="autoGender && genderReview.surname.length"
+            >По фамилии определены строки {{ genderReview.surname.slice(0, 8).join(', ')
+            }}<template v-if="genderReview.surname.length > 8">
+              и ещё {{ genderReview.surname.length - 8 }}</template
+            >. Проверьте их.</Alert
+          >
+          <Alert v-if="autoGender && genderReview.unresolved.length"
+            >Не удалось определить пол: строки {{ genderReview.unresolved.slice(0, 8).join(', ')
+            }}<template v-if="genderReview.unresolved.length > 8">
+              и ещё {{ genderReview.unresolved.length - 8 }}</template
+            >. Заполните его вручную.</Alert
+          >
+        </div>
+        <SpreadsheetImport :fields="template.fields" @rows="updateRows" /><Alert
           v-if="!template.fields.length"
         >
           В документе нет полей. Будут созданы копии исходного DOCX. Вернитесь к полям, чтобы добавить
           изменяемые места. </Alert
-        ><DataEditor :fields="template.fields" :rows="rows" @update="rows = $event" /> </template
+        ><DataEditor :fields="template.fields" :rows="rows" @update="updateRows" /> </template
       ><template v-if="step === 3 && template">
+        <Alert v-if="autoGender && genderReview.inferred">
+          Пол подставлен автоматически для {{ genderReview.inferred }} строк. Проверьте значения перед
+          созданием<template v-if="genderReview.surname.length"
+            >; по фамилии определены строки {{ genderReview.surname.slice(0, 8).join(', ')
+            }}<template v-if="genderReview.surname.length > 8">
+              и ещё {{ genderReview.surname.length - 8 }}</template
+            ></template
+          >.
+        </Alert>
+        <div class="card stack output-choice" role="group" aria-label="Формат результата">
+          <h3>Как скачать документы</h3>
+          <div class="output-options">
+            <button
+              type="button"
+              :aria-pressed="outputFormat === 'separate'"
+              @click="outputFormat = 'separate'"
+            >
+              <span class="output-title"
+                ><strong>Отдельные DOCX</strong
+                ><span v-if="outputFormat === 'separate'" class="output-selected" aria-hidden="true"
+                  >✓ Выбрано</span
+                ></span
+              >
+              <small>Для нескольких строк — ZIP с файлами</small>
+            </button>
+            <button
+              type="button"
+              :aria-pressed="outputFormat === 'combined'"
+              @click="outputFormat = 'combined'"
+            >
+              <span class="output-title"
+                ><strong>Один общий DOCX</strong
+                ><span v-if="outputFormat === 'combined'" class="output-selected" aria-hidden="true"
+                  >✓ Выбрано</span
+                ></span
+              >
+              <small>Каждый документ начинается с новой страницы</small>
+            </button>
+          </div>
+          <small v-if="outputFormat === 'combined'"
+            >Подходит для одного шаблона без изображений, закладок, сносок, списков и переменных полей в
+            колонтитулах. Длинное направление может занять больше одной страницы.</small
+          >
+        </div>
         <div class="review-stats">
           <div class="card">
             <span class="stat">{{ ready.length }}</span
@@ -144,14 +221,19 @@ const titles = [
           <Button @click="go(2)">Исправить данные</Button>
         </details>
         <details class="card">
-          <summary>Имена файлов и исключение строк</summary>
+          <summary>
+            {{ outputFormat === 'combined' ? 'Исключение строк' : 'Имена файлов и исключение строк' }}
+          </summary>
           <div class="stack">
-            <label
-              >Шаблон имени файла<input
-                v-model="template.filename"
-                placeholder="Документ_001 (по умолчанию)" /></label
-            ><small v-pre>Можно использовать названия полей: Договор_{{ ФИО }}</small
-            ><small v-for="name in fileExamples" :key="name">{{ name }}</small>
+            <template v-if="outputFormat === 'separate'">
+              <label
+                >Шаблон имени файла<input
+                  v-model="template.filename"
+                  placeholder="Документ_001 (по умолчанию)"
+              /></label>
+              <small v-pre>Можно использовать названия полей: Договор_{{ ФИО }}</small>
+              <small v-for="name in fileExamples" :key="name">{{ name }}</small>
+            </template>
             <div class="exclusions">
               <label v-for="(_, i) in rows" :key="i" class="inline"
                 ><input v-model="excluded" type="checkbox" :value="i" />Исключить строку {{ i + 1 }}</label
@@ -216,6 +298,49 @@ const titles = [
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
+}
+.output-choice h3 {
+  margin: 0;
+}
+.output-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+.output-options button {
+  display: grid;
+  gap: 4px;
+  padding: var(--space-4);
+  text-align: left;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.output-options button[aria-pressed='true'] {
+  border-color: var(--primary);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+.output-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.output-selected {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.output-options button small {
+  color: var(--muted);
+}
+@media (max-width: 600px) {
+  .output-options {
+    grid-template-columns: 1fr;
+  }
 }
 .review-stats .card {
   display: flex;

@@ -67,6 +67,8 @@ onUnmounted(() => provider.cancel());
     <label class="import-label"
       ><DzhuraIcon name="upload" :size="18" />{{ busy ? 'Читаем таблицу…' : 'Импортировать XLSX / CSV'
       }}<input type="file" accept=".xlsx,.csv" :disabled="busy" @change="load" /></label
+    ><small
+      >Номера вида 1/2026 и СНИЛС храните в Excel как текст, чтобы сохранить формат и начальные нули.</small
     ><Alert v-if="error" kind="error">{{ error }}</Alert>
     <div v-if="needsMapping && sheet" class="card stack">
       <h3>Сопоставьте колонки</h3>

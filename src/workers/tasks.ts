@@ -51,7 +51,21 @@ export async function execute<K extends keyof TaskMap>(
     renderSource: previewSource,
     analyze: (p: TaskMap['analyze']['input']) => engine.parse(p),
     preview: (p: TaskMap['preview']['input']) => engine.generate(p.source, p.fields, p.row),
-    generate: (p: TaskMap['generate']['input']) => {
+    generate: async (p: TaskMap['generate']['input']) => {
+      if (p.outputFormat === 'combined') {
+        const combined = await engine.combine(
+          p.source,
+          p.fields,
+          p.rows,
+          (current, total) => progress({ current, total, stage: 'Сборка общего документа' }),
+          p.rowNumbers,
+        );
+        return {
+          files: combined.count ? [{ name: 'Общий_документ.docx', bytes: combined.bytes }] : [],
+          errors: combined.errors,
+          documentCount: combined.count,
+        };
+      }
       const used = new Set<string>();
       return batch(
         p.rows,

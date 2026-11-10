@@ -13,7 +13,8 @@ const all = ref(false);
     <span class="result-icon" aria-hidden="true">✓</span>
     <h2>{{ result.files.length ? 'Документы готовы' : 'Обработка завершена' }}</h2>
     <p class="muted">
-      Создано: {{ result.files.length }} · исключено: {{ excluded || 0 }} · ошибок: {{ result.errors.length }}
+      Создано: {{ result.documentCount ?? result.files.length }} · исключено: {{ excluded || 0 }} · ошибок:
+      {{ result.errors.length }}
     </p>
     <Button
       v-if="result.files.length"
