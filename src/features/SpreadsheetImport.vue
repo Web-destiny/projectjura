@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onUnmounted, ref, watch } from 'vue';
 import type { DataRow, Field } from '../domain/models';
 import { autoMap, mapRows, type Sheet } from '../infrastructure/spreadsheet/engine';
 import { LocalProcessingProvider } from '../infrastructure/processing/local-provider';
@@ -9,7 +9,7 @@ import Alert from '../shared/ui/Alert.vue';
 import DzhuraIcon from '../shared/ui/DzhuraIcon.vue';
 import DzhuraSelect from '../shared/ui/DzhuraSelect.vue';
 const props = defineProps<{ fields: Field[] }>();
-const emit = defineEmits<{ rows: [DataRow[]] }>();
+const emit = defineEmits<{ rows: [DataRow[]]; 'pending-change': [boolean] }>();
 const provider = new LocalProcessingProvider();
 const sheets = ref<Sheet[]>([]);
 const selected = ref(0);
@@ -18,6 +18,13 @@ const busy = ref(false);
 const error = ref('');
 const sheet = computed(() => sheets.value[selected.value]);
 const needsMapping = ref(false);
+watch(
+  [busy, needsMapping],
+  ([loading, mappingPending]) => emit('pending-change', loading || mappingPending),
+  {
+    flush: 'sync',
+  },
+);
 function prepare() {
   mapping.value = autoMap(sheet.value.headers, props.fields);
   needsMapping.value = true;
@@ -60,6 +67,7 @@ async function load(e: Event) {
     input.value = '';
   }
 }
+onBeforeUnmount(() => emit('pending-change', false));
 onUnmounted(() => provider.cancel());
 </script>
 <template>

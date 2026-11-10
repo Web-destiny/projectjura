@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useCreation } from '../features/useCreation';
 import { documents } from '../shared/ru';
 import Button from '../shared/ui/Button.vue';
@@ -56,6 +57,7 @@ const titles = [
   'Всё готово к проверке',
   'Рутина закончилась',
 ];
+const importPending = ref(false);
 </script>
 <template>
   <div class="row between">
@@ -149,9 +151,11 @@ const titles = [
             >. Заполните его вручную.</Alert
           >
         </div>
-        <SpreadsheetImport :fields="template.fields" @rows="updateRows" /><Alert
-          v-if="!template.fields.length"
-        >
+        <SpreadsheetImport
+          :fields="template.fields"
+          @rows="updateRows"
+          @pending-change="importPending = $event"
+        /><Alert v-if="!template.fields.length">
           В документе нет полей, поэтому данные не подставятся. Вернитесь к настройке полей, чтобы отметить
           изменяемые места. </Alert
         ><DataEditor :fields="template.fields" :rows="rows" @update="updateRows" /> </template
@@ -276,7 +280,12 @@ const titles = [
       </template>
       <div v-if="step < 4" class="actions">
         <Button v-if="step > 0" @click="go(step - 1)"><DzhuraIcon name="arrow-left" :size="17" />Назад</Button
-        ><Button v-if="step < 3" variant="primary" :disabled="!template" @click="go(step + 1)">
+        ><Button
+          v-if="step < 3"
+          variant="primary"
+          :disabled="!template || (step === 2 && importPending)"
+          @click="go(step + 1)"
+        >
           {{ step === 0 ? 'К настройке полей' : step === 1 ? 'К данным' : 'Проверить данные' }}
           <DzhuraIcon name="arrow-right" :size="18" /> </Button
         ><Button v-else variant="primary" :disabled="!ready.length" @click="generate">

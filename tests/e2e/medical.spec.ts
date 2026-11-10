@@ -33,7 +33,10 @@ test('Excel rows produce one DOCX with gender suggestions and page starts', asyn
     mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     buffer: Buffer.from(new Uint8Array(await book.xlsx.writeBuffer())),
   });
+  await expect(page.getByRole('button', { name: 'Импортировать 3 строк' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Проверить данные' })).toBeDisabled();
   await page.getByRole('button', { name: 'Импортировать 3 строк' }).click();
+  await expect(page.getByRole('button', { name: 'Проверить данные' })).toBeEnabled();
   await expect(page.getByLabel('Пол, строка 1', { exact: true })).toHaveValue('мужской');
   await expect(page.getByLabel('Пол, строка 2', { exact: true })).toHaveValue('женский');
   await expect(page.getByLabel('Пол, строка 3', { exact: true })).toHaveValue('');
@@ -63,4 +66,37 @@ test('Excel rows produce one DOCX with gender suggestions and page starts', asyn
   expect(xml).toContain('20.08.1985');
   expect(xml.match(/pageBreakBefore/gu) || []).toHaveLength(2);
   expect(sent).toEqual([]);
+});
+
+test('waits for spreadsheet import before moving to review', async ({ page }) => {
+  await page.addInitScript(() => {
+    const send = Worker.prototype.postMessage;
+    Worker.prototype.postMessage = function (message: unknown) {
+      if (
+        typeof message === 'object' &&
+        message !== null &&
+        'task' in message &&
+        message.task === 'spreadsheet'
+      ) {
+        setTimeout(() => send.call(this, message), 600);
+      } else send.call(this, message);
+    };
+  });
+  const source = await makeDocx('<w:p><w:r><w:t>{{ФИО}}</w:t></w:r></w:p>');
+  await page.goto('/create');
+  await page.locator('input[type=file]').setInputFiles({
+    name: 'template.docx',
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    buffer: Buffer.from(source),
+  });
+  await page.getByRole('button', { name: 'К настройке полей' }).click();
+  await page.getByRole('button', { name: 'К данным' }).click();
+  const csv = 'ФИО\nТест первый\nТест второй';
+  await page
+    .locator('input[type=file]')
+    .setInputFiles({ name: 'test.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) });
+  const next = page.getByRole('button', { name: 'Проверить данные' });
+  await expect(next).toBeDisabled();
+  await expect(next).toBeEnabled();
+  await expect(page.getByLabel('ФИО, строка 2', { exact: true })).toHaveValue('Тест второй');
 });
